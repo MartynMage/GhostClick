@@ -213,8 +213,8 @@ class ClickList(ctk.CTkScrollableFrame):
         self.on_record_click = None
         self.on_add_click = None
 
-        # auto-hide scrollbar when content fits
-        self._parent_canvas.bind("<Configure>", lambda e: self.after_idle(self._auto_scrollbar))
+        # auto-hide scrollbar when content fits (add="+" preserves CTk's own resize handler)
+        self._parent_canvas.bind("<Configure>", lambda e: self.after_idle(self._auto_scrollbar), add="+")
 
         # show empty state by default
         self.after(50, self._show_empty)
@@ -355,15 +355,9 @@ class ClickList(ctk.CTkScrollableFrame):
         if self._empty_frame:
             return
 
-        wrap = ctk.CTkFrame(self, fg_color="transparent")
-        wrap.pack(expand=True, fill="both")
-
-        # center everything vertically
-        spacer_top = ctk.CTkFrame(wrap, fg_color="transparent")
-        spacer_top.pack(expand=True)
-
-        content = ctk.CTkFrame(wrap, fg_color="transparent")
-        content.pack()
+        # overlay on the canvas so it doesn't inflate scrollable content height
+        content = ctk.CTkFrame(self._parent_canvas, fg_color="transparent")
+        content.place(relx=0.5, rely=0.5, anchor="center")
 
         ctk.CTkLabel(
             content, text="No steps yet",
@@ -399,10 +393,7 @@ class ClickList(ctk.CTkScrollableFrame):
             command=lambda: self.on_add_click and self.on_add_click(),
         ).pack(side="left")
 
-        spacer_bot = ctk.CTkFrame(wrap, fg_color="transparent")
-        spacer_bot.pack(expand=True)
-
-        self._empty_frame = wrap
+        self._empty_frame = content
         self.after_idle(self._auto_scrollbar)
 
     def _hide_empty(self):

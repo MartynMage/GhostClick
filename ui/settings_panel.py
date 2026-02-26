@@ -190,6 +190,7 @@ class SettingsPanel(ctk.CTkFrame):
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
+        self.grid_propagate(False)
 
         # scrollable inner container
         inner = ctk.CTkScrollableFrame(
@@ -199,7 +200,7 @@ class SettingsPanel(ctk.CTkFrame):
         )
         inner.grid(row=0, column=0, sticky="nsew")
         inner.grid_columnconfigure(0, weight=1)
-        inner._parent_canvas.bind("<Configure>", lambda e: self.after_idle(self._auto_scrollbar))
+        inner._parent_canvas.bind("<Configure>", lambda e: self.after_idle(self._auto_scrollbar), add="+")
 
         self._inner = inner
         row = 0
@@ -224,52 +225,51 @@ class SettingsPanel(ctk.CTkFrame):
         )
         row += 1
 
-        ctk.CTkLabel(
-            inner, text="Repeat Count",
-            font=ctk.CTkFont(family=FAMILY, size=12), text_color=TEXT_SEC,
-        ).grid(row=row, column=0, padx=16, pady=(0, 4), sticky="w")
+        # repeat count + delay side by side
+        repeat_row = ctk.CTkFrame(inner, fg_color="transparent")
+        repeat_row.grid(row=row, column=0, padx=16, pady=(0, 3), sticky="ew")
         row += 1
+
+        count_col = ctk.CTkFrame(repeat_row, fg_color="transparent")
+        count_col.pack(side="left", padx=(0, 12))
+
+        ctk.CTkLabel(
+            count_col, text="Repeat",
+            font=ctk.CTkFont(family=FAMILY, size=12), text_color=TEXT_SEC,
+        ).pack(anchor="w")
 
         self.repeat_var = ctk.StringVar(value="1")
         self.repeat_entry = ctk.CTkEntry(
-            inner, textvariable=self.repeat_var, width=76, height=32,
+            count_col, textvariable=self.repeat_var, width=68, height=30,
             placeholder_text="1",
             fg_color=BG_INPUT, border_color=BORDER, border_width=1,
             text_color=TEXT,
             font=ctk.CTkFont(family=FAMILY, size=12),
             corner_radius=RADIUS_SM,
         )
-        self.repeat_entry.grid(row=row, column=0, padx=16, pady=(0, 3), sticky="w")
-        row += 1
+        self.repeat_entry.pack(anchor="w", pady=(3, 0))
+
+        delay_col = ctk.CTkFrame(repeat_row, fg_color="transparent")
+        delay_col.pack(side="left")
 
         ctk.CTkLabel(
-            inner, text="0 = run forever",
-            font=ctk.CTkFont(family=FAMILY, size=11),
-            text_color=TEXT_DIM,
-        ).grid(row=row, column=0, padx=16, pady=(0, 8), sticky="w")
-        row += 1
-
-        # repeat delay
-        ctk.CTkLabel(
-            inner, text="Repeat Delay (s)",
+            delay_col, text="Delay (s)",
             font=ctk.CTkFont(family=FAMILY, size=12), text_color=TEXT_SEC,
-        ).grid(row=row, column=0, padx=16, pady=(0, 4), sticky="w")
-        row += 1
+        ).pack(anchor="w")
 
         self.repeat_delay_var = ctk.StringVar(value="0")
         self.repeat_delay_entry = ctk.CTkEntry(
-            inner, textvariable=self.repeat_delay_var, width=76, height=32,
+            delay_col, textvariable=self.repeat_delay_var, width=68, height=30,
             placeholder_text="0",
             fg_color=BG_INPUT, border_color=BORDER, border_width=1,
             text_color=TEXT,
             font=ctk.CTkFont(family=FAMILY, size=12),
             corner_radius=RADIUS_SM,
         )
-        self.repeat_delay_entry.grid(row=row, column=0, padx=16, pady=(0, 3), sticky="w")
-        row += 1
+        self.repeat_delay_entry.pack(anchor="w", pady=(3, 0))
 
         ctk.CTkLabel(
-            inner, text="Pause between loops",
+            inner, text="0 = forever  ·  delay between loops",
             font=ctk.CTkFont(family=FAMILY, size=11),
             text_color=TEXT_DIM,
         ).grid(row=row, column=0, padx=16, pady=(0, 8), sticky="w")
